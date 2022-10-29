@@ -5,8 +5,22 @@ import { MyText } from './MyText'
 import { useState } from 'react';
 import { MyCountries } from './MyCountries'
 
+function getVarByCountry(country){
+  console.log("getExp: " , country)
+
+  if (country === "USA")
+    return 1.3
+  
+  if (country === "Israel")
+    return 1
+
+  console.log("End")
+  return 0.9
+}
+
+
 function getExpByCountry(country){
-  console.log(country)
+  console.log("getVar: " , country)
 
   if (country === "USA")
     return 45000
@@ -18,12 +32,32 @@ function getExpByCountry(country){
   return 15000
 }
 
+function transformIncomeZScore(originIncome, originCountry, targetCountry){
+    var o_exp = getExpByCountry(originCountry)
+    var t_exp = getExpByCountry(targetCountry)
+
+    var o_var = getVarByCountry(originCountry)
+    var t_var = getVarByCountry(targetCountry)
+
+    return ((originIncome - o_exp + t_exp) * t_var ) / o_var
+}
+
+function transformIncomeExponentially(originIncome, originCountry, targetCountry){
+  var o_exp = getExpByCountry(originCountry)
+  var t_exp = getExpByCountry(targetCountry)
+
+  var o_var = getVarByCountry(originCountry)
+  var t_var = getVarByCountry(targetCountry)
+
+  return ((originIncome - o_exp + t_exp) * t_var ) / o_var
+}
+
 function calculateIncome(state, set_state, value){
   set_state({
     CurrentLocation: state.CurrentLocation, 
     Destination: state.Destination,
     CurrentIncome: value,
-    ForecastIncome: value - getExpByCountry(state.CurrentLocation) + getExpByCountry(state.Destination)
+    ForecastIncome: transformIncomeZScore(value, state.CurrentLocation, state.Destination)
   })
 }
 
@@ -43,7 +77,7 @@ function App() {
       CurrentLocation: value, 
       Destination: state.Destination,
       CurrentIncome: state.CurrentIncome,
-      ForecastIncome: state.CurrentIncome - getExpByCountry(value) + getExpByCountry(state.Destination)
+      ForecastIncome: transformIncomeZScore(state.CurrentIncome, value, state.Destination)
     })
   }
 
@@ -52,7 +86,7 @@ function App() {
       CurrentLocation: state.CurrentLocation, 
       Destination: value,
       CurrentIncome: state.CurrentIncome,
-      ForecastIncome: state.CurrentIncome - getExpByCountry(state.CurrentLocation) + getExpByCountry(value)
+      ForecastIncome:transformIncomeZScore(state.CurrentIncome, state.CurrentLocation, value)
     })
   }
 
